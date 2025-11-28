@@ -42,7 +42,7 @@ aoi_colors = {
     "H": "skyblue"
 }
 
-#Extract weighted AOI transition
+#Compute weighted AOI transitions between consecutive AOIs
 def extract_transitions(df):
     transitions = Counter()
 
@@ -105,9 +105,6 @@ s_src, s_tgt, s_val, s_label, s_colors = build_links(trans_success, total_succes
 u_src, u_tgt, u_val, u_label, u_colors = build_links(trans_unsuccess, total_unsuccess)
 
 #Reposition Nodes
-# =========================================================
-# CLEAN NODE POSITIONS — CENTERED + SHIFTED DOWN
-# =========================================================
 node_x = [
     0.10, 0.25, 0.40, 0.40, 0.55, 0.55, 0.70, 0.85
 ]
@@ -116,11 +113,10 @@ node_y = [
     0.50, 0.10, 0.30, 0.70, 0.20, 0.60, 0.40, 0.50
 ]
 
-
 #Dual Sankey with tooltips
 fig = go.Figure()
 
-# -------- Successful --------
+#Successful Pilot Sankey
 fig.add_trace(go.Sankey(
     domain=dict(x=[0.05, 0.45]),
     node=dict(
@@ -144,7 +140,7 @@ fig.add_trace(go.Sankey(
     name="Successful"
 ))
 
-# -------- Unsuccessful --------
+#Unsuccessful Pilot Sankey
 fig.add_trace(go.Sankey(
     domain=dict(x=[0.55, 0.95]),
     node=dict(
