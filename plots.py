@@ -15,6 +15,31 @@ AOI_names = {
     "G": "RPM",
     "H": "Window",
 }
+
+def get_top_3_gaze_percentages_filtered(
+    patterns: pd.Series, exclude_a: bool
+) -> list:
+    """
+    Calculate the top 3 AOIs by gaze percentage from a filtered set of patterns.
+    Returns a list of tuples: [(AOI, percentage), ...]
+    """
+    # Get all AOI characters from the provided patterns
+    all_aoi = [a for p in patterns for a in str(p)]
+    aoi_counts = Counter(all_aoi)
+    total_gaze = sum(aoi_counts.values())
+    
+    if total_gaze == 0:
+        return []
+    
+    # Calculate percentages
+    aoi_percentages = {
+        aoi: (aoi_counts[aoi] / total_gaze) * 100 
+        for aoi in AOI if aoi_counts[aoi] > 0
+    }
+    
+    # Sort and get top 3
+    top_3 = sorted(aoi_percentages.items(), key=lambda x: x[1], reverse=True)[:3]
+    return top_3
 def build_sequence_matrix(patterns: pd.Series, freqs: pd.Series, overall_pct, index_pct):
     """
     Turn the patterns into matrix to plot with z (2d array of patterns x max length),

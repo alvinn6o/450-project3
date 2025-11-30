@@ -1,12 +1,20 @@
 from dash import Dash, dcc, html, Input, Output
 
-from plots import make_sequence_index_figure
+from plots import make_sequence_index_figure, get_top_3_gaze_percentages_filtered, AOI_names, load_table
+from data import AOI
 
 app = Dash(__name__)
 
 app.layout = html.Div(
     [
         html.H2("Sequence Plot for AOIs"),
+        
+        # Top 3 Gaze Percentages Summary
+        html.Div(
+            id="top-3-summary",
+            style={"marginBottom": "2rem", "padding": "1rem", "backgroundColor": "#f5f5f5", "borderRadius": "4px"}
+        ),
+        
         html.Div(
             [
                 #html.Div(
@@ -127,6 +135,7 @@ app.layout = html.Div(
 @app.callback(
     Output("success-graph", "figure"),
     Output("unsuccess-graph", "figure"),
+    Output("top-3-summary", "children"),
     #Input("group-radio", "value"),
     Input("pattern-type-radio", "value"),
     Input("exclude-a-radio", "value"),
@@ -144,6 +153,12 @@ def update_sequence_index_plot(
 ):
     exclude_a = (exclude_a_value == "exclude")
     show_all = "all" in (show_all_values or [])
+    
+    metric_col_map = {
+        "frequency": "Frequency",
+        "seq_support": "Sequence Support",
+    }
+    metric_col = metric_col_map[metric]
 
     fig_success = make_sequence_index_figure(
         pattern_type=pattern_type,
@@ -162,7 +177,42 @@ def update_sequence_index_plot(
         top_k=top_k,
         show_all=show_all,
     )
-    return fig_success, fig_unsuccess
+    
+    # Get filtered patterns to compute top 3 from currently displayed patterns
+    df_success = load_table(pattern_type, "successful", exclude_a)
+    df_unsuccess = load_table(pattern_type, "unsuccessful", exclude_a)
+    
+    df_success_sorted = df_success.sort_values(metric_col, ascending=False)
+    df_unsuccess_sorted = df_unsuccess.sort_values(metric_col, ascending=False)
+    
+    if not show_all and top_k is not None:
+        df_success_sorted = df_success_sorted.head(int(top_k))
+        df_unsuccess_sorted = df_unsuccess_sorted.head(int(top_k))
+    
+    # Calculate top 3 for displayed patterns
+    top_3_success = get_top_3_gaze_percentages_filtered(df_success_sorted["Pattern String"], exclude_a)
+    top_3_unsuccess = get_top_3_gaze_percentages_filtered(df_unsuccess_sorted["Pattern String"], exclude_a)
+    
+    # Create summary display
+    summary = html.Div([
+        html.Div([
+            html.H4("Successful Pilots - Top 3 AOI Gaze %", style={"marginTop": 0}),
+            html.Ul([
+                html.Li(f"{aoi} - {AOI_names[aoi]}: {pct:.1f}%") 
+                for aoi, pct in top_3_success
+            ])
+        ], style={"display": "inline-block", "marginRight": "3rem", "verticalAlign": "top"}),
+        
+        html.Div([
+            html.H4("Unsuccessful Pilots - Top 3 AOI Gaze %", style={"marginTop": 0}),
+            html.Ul([
+                html.Li(f"{aoi} - {AOI_names[aoi]}: {pct:.1f}%") 
+                for aoi, pct in top_3_unsuccess
+            ])
+        ], style={"display": "inline-block", "verticalAlign": "top"})
+    ])
+    
+    return fig_success, fig_unsuccess, summary
 
 
 
