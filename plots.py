@@ -15,6 +15,7 @@ AOI_names = {
     "G": "RPM",
     "H": "Window",
 }
+<<<<<<< HEAD
 
 def get_top_3_gaze_percentages(group_key: str, exclude_a: bool) -> list:
     """
@@ -63,6 +64,8 @@ def get_top_3_gaze_percentages_filtered(
     # Sort and get top 3
     top_3 = sorted(aoi_percentages.items(), key=lambda x: x[1], reverse=True)[:3]
     return top_3
+=======
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
 def build_sequence_matrix(patterns: pd.Series, freqs: pd.Series, overall_pct, index_pct):
     """
     Turn the patterns into matrix to plot with z (2d array of patterns x max length),

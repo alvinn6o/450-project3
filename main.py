@@ -1,16 +1,19 @@
-import pandas as pd
-import plotly.graph_objects as go
-from collections import Counter
+from dash import Dash, dcc, html, Input, Output
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 #Data to use
 =======
 from plots import make_sequence_index_figure, get_top_3_gaze_percentages_filtered, AOI_names, load_table
 from data import AOI
 >>>>>>> Stashed changes
+=======
+from plots import make_sequence_index_figure
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
 
-file = "Expanded Patterns (Group).xlsx"
+app = Dash(__name__)
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 use_excluding_a = True #Make false to include AOI A (Just for testing)
 =======
@@ -24,6 +27,11 @@ app.layout = html.Div(
             style={"marginBottom": "2rem", "padding": "1rem", "backgroundColor": "#f5f5f5", "borderRadius": "4px"}
         ),
         
+=======
+app.layout = html.Div(
+    [
+        html.H2("Sequence Plot for AOIs"),
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
         html.Div(
             [
                 #html.Div(
@@ -56,206 +64,108 @@ app.layout = html.Div(
                     ],
                     style={"marginRight": "2rem"},
                 ),
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
 
-if use_excluding_a:
-    s_sheet = "Succesful Excluding No AOI(A)"
-    u_sheet = "Unsuccesful Excluding No AOI(A)"
-else:
-    s_sheet = "Succesful"
-    u_sheet = "Unsuccesful"
+                html.Div(
+                    [
+                        html.Label("AOI A (No AOI)"),
+                        dcc.RadioItems(
+                            id="exclude-a-radio",
+                            options=[
+                                {"label": "Include A", "value": "include"},
+                                {"label": "Exclude A", "value": "exclude"},
+                            ],
+                            value="exclude",
+                            inline=True,
+                        ),
+                    ],
+                    style={"marginRight": "2rem"},
+                ),
 
-df_success = pd.read_excel(file, sheet_name=s_sheet)
-df_unsuccess = pd.read_excel(file, sheet_name=u_sheet)
+                html.Div(
+                    [
+                        html.Label("Rank"),
+                        dcc.RadioItems(
+                            id="metric-radio",
+                            options=[
+                                {"label": "Frequency", "value": "frequency"},
+                                {"label": "Sequence support", "value": "seq_support"},
+                            ],
+                            value="frequency",
+                            inline=True,
+                            inputStyle={"margin-right": "5px", "margin-left": "10px"},
+                        ),
+                    ],
+                    style={"marginRight": "2rem"},
+                ),
 
-#AOI Labels
-aoi_labels = {
-    "A": "A - No AOI",
-    "B": "B - Alt_VSI",
-    "C": "C - AI",
-    "D": "D - TI_HSI",
-    "E": "E - SSI",
-    "F": "F - ASI",
-    "G": "G - RPM",
-    "H": "H - Window"
-}
-
-#AOI Colormap
-aoi_colors = {
-    "A": "lightgray",
-    "B": "steelblue",
-    "C": "darkorange",
-    "D": "darkcyan",
-    "E": "mediumpurple",
-    "F": "firebrick",
-    "G": "olivedrab",
-    "H": "skyblue"
-}
-
-#Compute weighted AOI transitions between consecutive AOIs
-def extract_transitions(df):
-    transitions = Counter()
-
-    for _, row in df.iterrows():
-        pattern = str(row["Pattern String"]).strip()
-        freq = int(row["Frequency"])
-        seq = list(pattern)
-
-        #Record transition pairs
-        for i in range(len(seq) - 1):
-            src = seq[i]
-            tgt = seq[i+1]
-            transitions[(src, tgt)] += freq
-
-    return transitions
-
-trans_success = extract_transitions(df_success)
-trans_unsuccess = extract_transitions(df_unsuccess)
-
-#Build node list
-letters = sorted(set(
-    [s for s, _ in trans_success] +
-    [t for _, t in trans_success] +
-    [s for s, _ in trans_unsuccess] +
-    [t for _, t in trans_unsuccess]
-))
-
-nodes = [aoi_labels[l] for l in letters]
-node_colors = [aoi_colors[l] for l in letters]
-letter_to_index = {ltr: i for i, ltr in enumerate(letters)}
-
-#Build link arrays with tooltips
-def build_links(transitions, total_count):
-    sources, targets, values, tooltips, link_colors = [], [], [], [], []
-
-    for (src, tgt), count in transitions.items():
-        sources.append(letter_to_index[src])
-        targets.append(letter_to_index[tgt])
-        values.append(count)
-
-        pct = (count / total_count) * 100
-
-        tooltip = (
-            f"{aoi_labels[src]}: {aoi_labels[tgt]}<br>"
-            f"Count: {count}<br>"
-            f"Percentage: {pct:.2f}%"
-        )
-        tooltips.append(tooltip)
-
-        link_colors.append(aoi_colors[src])
-
-    return sources, targets, values, tooltips, link_colors
-
-#Totals
-total_success = sum(trans_success.values())
-total_unsuccess = sum(trans_unsuccess.values())
-
-#Build arrays
-s_src, s_tgt, s_val, s_label, s_colors = build_links(trans_success, total_success)
-u_src, u_tgt, u_val, u_label, u_colors = build_links(trans_unsuccess, total_unsuccess)
-
-#Reposition Nodes
-node_x = [
-    0.10, 0.25, 0.40, 0.40, 0.55, 0.55, 0.70, 0.85
-]
-
-node_y = [
-    0.50, 0.10, 0.30, 0.70, 0.20, 0.60, 0.40, 0.50
-]
-
-#Dual Sankey with tooltips
-fig = go.Figure()
-
-#Successful Pilot Sankey
-fig.add_trace(go.Sankey(
-    domain=dict(x=[0.05, 0.45]),
-    node=dict(
-        label=[ltr for ltr in letters],
-        customdata=[aoi_labels[l] for l in letters],
-        hovertemplate="%{customdata}<extra></extra>",
-        x=node_x,
-        y=node_y,
-        pad=15,
-        thickness=18,
-        color=node_colors
-    ),
-    link=dict(
-        source=s_src,
-        target=s_tgt,
-        value=s_val,
-        label=s_label,
-        color=s_colors,
-        hovertemplate="%{label}<extra></extra>"
-    ),
-    name="Successful"
-))
-
-#Unsuccessful Pilot Sankey
-fig.add_trace(go.Sankey(
-    domain=dict(x=[0.55, 0.95]),
-    node=dict(
-        label=[ltr for ltr in letters],
-        customdata=[aoi_labels[l] for l in letters],
-        hovertemplate="%{customdata}<extra></extra>",
-        x=node_x,
-        y=node_y,
-        pad=15,
-        thickness=18,
-        color=node_colors
-    ),
-    link=dict(
-        source=u_src,
-        target=u_tgt,
-        value=u_val,
-        label=u_label,
-        color=u_colors,
-        hovertemplate="%{label}<extra></extra>"
-    ),
-    name="Unsuccessful"
-))
-
-fig.update_layout(
-    title_text=None,
-    font_size=12,
-    width=1600,
-    height=1050,
-    margin=dict(t=250),
-    annotations=[
-        # Main TItle
-        dict(
-            x=0.5, y=1.25,
-            xref="paper", yref="paper",
-            text="AOI Transition Comparison - Successful vs. Unsuccessful Pilots",
-            showarrow=False,
-            font=dict(size=26, color="black")
+                html.Div(
+                    [
+                        html.Label("Top K patterns"),
+                        dcc.Slider(
+                            id="top-k-slider",
+                            min=5,
+                            max=100,
+                            step=1,
+                            value=10,
+                            marks={
+                                5: "5",
+                                10: "10",
+                                20: "20",
+                                30: "30",
+                                40: "40",
+                                50: "50",
+                                60: "60",
+                                70: "70",
+                                80: "80",
+                                90: "90",
+                                100: "100",
+                            },
+                        ),
+                        dcc.Checklist(
+                            id="show-all-checklist",
+                            options=[{"label": " Show all patterns", "value": "all"}],
+                            value=[],
+                            style={"marginTop": "0.4rem"},
+                        ),
+                    ],
+                    style={"flex": "1 1 300px", "maxWidth": "420px"},
+                ),
+            ],
+            style={"display": "flex", "flexWrap": "wrap", "marginBottom": "1rem"},
         ),
-        # Left Subtitle
-        dict(
-            x=0.25, y=1.18,
-            xref="paper", yref="paper",
-            text="Successful AOI Transitions",
-            showarrow=False,
-            font=dict(size=20)
-        ),
-        # Right Subtitle
-        dict(
-            x=0.75, y=1.18,
-            xref="paper", yref="paper",
-            text="Unsuccessful AOI Transitions",
-            showarrow=False,
-            font=dict(size=20)
+
+        html.Div(
+            [
+                html.H3("Successful Pilots", style={"marginTop": "1.5rem"}),
+                dcc.Graph(id="success-graph"),
+
+                html.H3("Unsuccessful Pilots", style={"marginTop": "2rem"}),
+                dcc.Graph(id="unsuccess-graph"),
+            ]
         )
-    ]
+
+    ],
+    style={"padding": "1.5rem"},
 )
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 fig.show()
 =======
+=======
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
 
 @app.callback(
     Output("success-graph", "figure"),
     Output("unsuccess-graph", "figure"),
+<<<<<<< HEAD
     Output("top-3-summary", "children"),
+=======
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
     #Input("group-radio", "value"),
     Input("pattern-type-radio", "value"),
     Input("exclude-a-radio", "value"),
@@ -273,12 +183,15 @@ def update_sequence_index_plot(
 ):
     exclude_a = (exclude_a_value == "exclude")
     show_all = "all" in (show_all_values or [])
+<<<<<<< HEAD
     
     metric_col_map = {
         "frequency": "Frequency",
         "seq_support": "Sequence Support",
     }
     metric_col = metric_col_map[metric]
+=======
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
 
     fig_success = make_sequence_index_figure(
         pattern_type=pattern_type,
@@ -297,6 +210,7 @@ def update_sequence_index_plot(
         top_k=top_k,
         show_all=show_all,
     )
+<<<<<<< HEAD
     
     # Get filtered patterns to compute top 3 from currently displayed patterns
     df_success = load_table(pattern_type, "successful", exclude_a)
@@ -333,9 +247,15 @@ def update_sequence_index_plot(
     ])
     
     return fig_success, fig_unsuccess, summary
+=======
+    return fig_success, fig_unsuccess
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
 
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> ec8d41e77fa6984f18f3ef53d131d41e118a3484
