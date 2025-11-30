@@ -4,6 +4,16 @@ import pandas as pd
 
 from data import load_table, AOI, AOI_ENUMERATED
 
+AOI_names = {
+    "A": "Noi AOI",
+    "B": "Alt_VSI",
+    "C": "AI",
+    "D": "TI_HSI",
+    "E": "SSI",
+    "F": "ASI",
+    "G": "RPM",
+    "H": "Window",
+}
 def build_sequence_matrix(patterns: pd.Series, freqs: pd.Series):
     """
     Turn the patterns into matrix to plot with z (2d array of patterns x max length),
@@ -32,7 +42,7 @@ def build_sequence_matrix(patterns: pd.Series, freqs: pd.Series):
                 row_text.append(
                     f"Rank: {rank}<br>"
                     f"Pattern: {pattern}<br>"
-                    f"AOI: {aoi}<br>"
+                    f"AOI: {aoi} - {AOI_names.get(aoi, '')}<br>"
                     f"Index: {pos + 1}<br>"
                     f"Frequency: {freq}"
                 )
@@ -115,7 +125,7 @@ def make_sequence_index_figure(
             title="AOI",
             tickmode="array",
             tickvals=list(range(len(AOI))),
-            ticktext=AOI,
+            ticktext=[f"{aoi} - {AOI_names[aoi]}" for aoi in AOI],
         ),
     )
 
