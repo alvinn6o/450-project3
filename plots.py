@@ -137,12 +137,14 @@ def make_sequence_index_figure(
         "#FF8EAE", 
         "#BEEE8C", 
     ]
-    n_colors = len(colors) - 1 if len(colors) > 1 else 1
-
+    
+    # Discrete colorscale with definitive colors for each AOI
     colorscale = []
     for i, c in enumerate(colors):
-        v = i / n_colors
-        colorscale.append([v, c])
+        lower_v = i / len(colors)
+        upper_v = (i + 1) / len(colors)
+        colorscale.append([lower_v, c])
+        colorscale.append([upper_v, c])
 
     heatmap = go.Heatmap(
         z=z,
@@ -158,6 +160,8 @@ def make_sequence_index_figure(
             tickmode="array",
             tickvals=list(range(len(AOI))),
             ticktext=[f"{aoi} - {AOI_names[aoi]}" for aoi in AOI],
+            thickness=20,
+            len=0.7,
         ),
     )
 
