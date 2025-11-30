@@ -9,22 +9,21 @@ app.layout = html.Div(
         html.H2("Sequence Plot for AOIs"),
         html.Div(
             [
-                html.Div(
-                    [
-                        html.Label("Pilot group"),
-                        dcc.RadioItems(
-                            id="group-radio",
-                            options=[
-                                {"label": "Successful", "value": "successful"},
-                                {"label": "Unsuccessful", "value": "unsuccessful"},
-                            ],
-                            value="successful",
-                            inline=True,
-                        ),
-                    ],
-                    style={"marginRight": "2rem"},
-                ),
-
+                #html.Div(
+                    #[
+                       # html.Label("Pilot group"),
+                        #dcc.RadioItems(
+                           # id="group-radio",
+                           # options=[
+                              #  {"label": "Successful", "value": "successful"},
+                               # {"label": "Unsuccessful", "value": "unsuccessful"},
+                           # ],
+                            #value="successful",
+                            #inline=True,
+                       # ),
+                  #  ],
+                   # style={"marginRight": "2rem"},
+                #),
                 html.Div(
                     [
                         html.Label("Pattern type"),
@@ -110,15 +109,25 @@ app.layout = html.Div(
             style={"display": "flex", "flexWrap": "wrap", "marginBottom": "1rem"},
         ),
 
-        dcc.Graph(id="sequence-index-graph"),
+        html.Div(
+            [
+                html.H3("Successful Pilots", style={"marginTop": "1.5rem"}),
+                dcc.Graph(id="success-graph"),
+
+                html.H3("Unsuccessful Pilots", style={"marginTop": "2rem"}),
+                dcc.Graph(id="unsuccess-graph"),
+            ]
+        )
+
     ],
     style={"padding": "1.5rem"},
 )
 
 
 @app.callback(
-    Output("sequence-index-graph", "figure"),
-    Input("group-radio", "value"),
+    Output("success-graph", "figure"),
+    Output("unsuccess-graph", "figure"),
+    #Input("group-radio", "value"),
     Input("pattern-type-radio", "value"),
     Input("exclude-a-radio", "value"),
     Input("metric-radio", "value"),
@@ -126,7 +135,7 @@ app.layout = html.Div(
     Input("show-all-checklist", "value"),
 )
 def update_sequence_index_plot(
-    group_value,
+    #group_value,
     pattern_type,
     exclude_a_value,
     metric,
@@ -136,15 +145,24 @@ def update_sequence_index_plot(
     exclude_a = (exclude_a_value == "exclude")
     show_all = "all" in (show_all_values or [])
 
-    fig = make_sequence_index_figure(
+    fig_success = make_sequence_index_figure(
         pattern_type=pattern_type,
-        group_key=group_value,
+        group_key="successful",
         exclude_a=exclude_a,
         metric=metric,
         top_k=top_k,
         show_all=show_all,
     )
-    return fig
+
+    fig_unsuccess = make_sequence_index_figure(
+        pattern_type=pattern_type,
+        group_key="unsuccessful",
+        exclude_a=exclude_a,
+        metric=metric,
+        top_k=top_k,
+        show_all=show_all,
+    )
+    return fig_success, fig_unsuccess
 
 
 

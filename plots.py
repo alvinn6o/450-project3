@@ -1,6 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
 import pandas as pd
+from collections import Counter
 
 from data import load_table, AOI, AOI_ENUMERATED
 
@@ -14,7 +15,7 @@ AOI_names = {
     "G": "RPM",
     "H": "Window",
 }
-def build_sequence_matrix(patterns: pd.Series, freqs: pd.Series):
+def build_sequence_matrix(patterns: pd.Series, freqs: pd.Series, overall_pct, index_pct):
     """
     Turn the patterns into matrix to plot with z (2d array of patterns x max length),
     y_labels for rows, x_vals for the indexes, and hover feature
@@ -44,7 +45,9 @@ def build_sequence_matrix(patterns: pd.Series, freqs: pd.Series):
                     f"Pattern: {pattern}<br>"
                     f"AOI: {aoi} - {AOI_names.get(aoi, '')}<br>"
                     f"Index: {pos + 1}<br>"
-                    f"Frequency: {freq}"
+                    f"Frequency: {freq}<br>"
+                    f"Overall AOI Gaze Percentage:{overall_pct[aoi]:.1f}%<br>"
+                    f"AOI Gaze Percentage at Index {pos + 1}: {index_pct[pos][aoi]:.1f}%"
                 )
             else:
                 # if pattern length less than max length, turn into nan vals to pad
@@ -81,10 +84,39 @@ def make_sequence_index_figure(
     if not show_all and top_k is not None:
         df_sorted = df_sorted.head(int(top_k))
 
+    #Compute AOI percentages overall
+    all_aoi = [a for p in df_sorted["Pattern String"] for a in str(p)]
+    overall_counts = Counter(all_aoi)
+    overall_total = sum(overall_counts.values())
+    overall_pct = {
+        aoi: (overall_counts[aoi] / overall_total) * 100 if overall_total else 0 for aoi in AOI
+    }
+
+    #Compute AOI percentages by index
+    max_len = max(len(str(p)) for p in df_sorted["Pattern String"])
+    index_counts = [Counter() for _ in range(max_len)]
+    index_totals = [0 for _ in range(max_len)]
+
+    for p in df_sorted["Pattern String"]:
+        p = str(p)
+        for idx, a in enumerate(p):
+            if a in AOI:
+                index_counts[idx][a] += 1
+                index_totals[idx] += 1
+
+    index_pct = [
+        {
+            aoi: (index_counts[i][aoi] / index_totals[i]) * 100 if index_totals[i] else 0 for aoi in AOI
+         }
+        for i in range(max_len)
+    ]
+
     # sequence matrix for the graph
     z, y_labels, x_vals, text = build_sequence_matrix(
         df_sorted["Pattern String"],
         df_sorted["Frequency"],
+        overall_pct,
+        index_pct,
     )
 
     if z.size == 0:
