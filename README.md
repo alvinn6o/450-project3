@@ -1,8 +1,8 @@
-#CECS 450 Project 3 - Option A - ILS Approach Visualization#
+# CECS 450 Project 3 - Option A - ILS Approach Visualization #
 
 [Quick Demo Video](https://youtu.be/TXTqFz7CSM8)
 
-##About the Dataset#
+## About the Dataset #
 - Two datasets (Collapsed and Expanded)
   - Contains pilot eye-movement pattern sequences 
 - Collected during an Instrument Landing System Approach
@@ -17,7 +17,7 @@
   - Successful
   - Unsuccessful pilots
 
-##Visualization Idea + Features##
+## Visualization Idea + Features ##
 **Sequential Index Plot**
 - Visualize prominent gaze behavior patterns across pilot groups by encoding AOI sequences as color-coded index plots.
 
@@ -43,7 +43,7 @@
   - Ranking Metrics (Frequency or Sequence Support)
   - Top-K Selection (Top 5-100 patterns or all patterns)
 
-##Data Cleanup Methodology##
+## Data Cleanup Methodology ##
 1. Standardized Inputs
 - Load from both Excel files (Collapsed / Expanded patterns)
 - Auto-select sheets by group + AOI-A filter
@@ -69,13 +69,13 @@
 - Computed AOI overall percentages
 - Computed per-index AOI percentages for deeper insight
 
-##Libraries Used##
+## Libraries Used ##
 - Pandas: Loading, cleaning, and transforming the dataset
 - Numpy: Numeric operations and adding jitter to dense data points for enhanced readability
 - Plotly Express: Building interactive Sequence Index Plot with color coded AOIs and hover tooltips
 - Dash: Creating layouts and dropdowns as well as handling dynamic visual update via callbacks
 
-##Setup and Run Instructions##
+## Setup and Run Instructions ##
 - Install dependencies: pip install pandas plotly dash numpy
 - Make sure all files are in same folder as main.py
 - Run the app: python main.py
