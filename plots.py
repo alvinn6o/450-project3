@@ -206,4 +206,10 @@ def make_sequence_index_figure(
         margin=dict(l=160, r=40, t=60, b=40),
     )
 
+    fig.update_xaxes(
+        tickmode="array",
+        tickvals=x_vals,
+        ticktext=[str(x) for x in x_vals],
+    )
+
     return fig
